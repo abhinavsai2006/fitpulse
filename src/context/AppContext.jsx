@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
+  getRedirectResult,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -41,6 +42,14 @@ function parseAuthError(error) {
       return 'This email is already linked to an account.';
     case 'auth/weak-password':
       return 'Password should be at least 6 characters long.';
+    case 'auth/unauthorized-domain':
+      return 'This domain is not authorized in Firebase. Add it under Authentication > Settings > Authorized domains.';
+    case 'auth/operation-not-allowed':
+      return 'This sign-in method is disabled. Enable it in Firebase Authentication > Sign-in method.';
+    case 'auth/invalid-api-key':
+      return 'Firebase API key is invalid or restricted for this domain.';
+    case 'auth/network-request-failed':
+      return 'Network error while contacting Firebase. Check connection and try again.';
     case 'auth/popup-closed-by-user':
       return 'Google sign-in popup was closed before completion.';
     case 'auth/too-many-requests':
@@ -136,6 +145,15 @@ export function AppProvider({ children }) {
   const [authBusy, setAuthBusy] = useState(false);
 
   useEffect(() => {
+    // Capture redirect auth outcomes and surface Firebase errors in-app.
+    getRedirectResult(auth)
+      .catch((error) => {
+        dispatch({ type: 'SET_AUTH_ERROR', error: parseAuthError(error) });
+      })
+      .finally(() => {
+        setAuthBusy(false);
+      });
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
