@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Designing Test Cases Report - FitPulse</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#e8eaf6',
+                primaryTextColor: '#1a237e',
+                primaryBorderColor: '#1a237e',
+                lineColor: '#283593',
+                secondaryColor: '#f5f7ff',
+                tertiaryColor: '#ffffff',
+                fontFamily: 'Segoe UI, Arial, sans-serif',
+                fontSize: '13px'
+            },
+            flowchart: { curve: 'basis', padding: 18, nodeSpacing: 48, rankSpacing: 58, htmlLabels: true },
+            stateDiagram: { labelMargin: 12 }
+        });
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Times New Roman', Times, serif; font-size: 13pt; line-height: 1.6; color: #1a1a1a; background: #f5f5f5; }
+        .page { width: 210mm; min-height: 297mm; margin: 10mm auto; padding: 25mm 25mm 30mm 30mm; background: #ffffff; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12); page-break-after: always; position: relative; }
+        .page:last-child { page-break-after: avoid; }
+        @media print {
+            body { background: #ffffff; }
+            .page { margin: 0; padding: 20mm 20mm 25mm 25mm; box-shadow: none; width: 100%; min-height: auto; }
+        }
+
+        .cover-page { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; padding-top: 15mm; }
+        .cover-logo { width: 160px; height: auto; margin-bottom: 10px; }
+        .cover-university { font-size: 20pt; font-weight: bold; color: #1a237e; margin-bottom: 2px; letter-spacing: 1px; }
+        .cover-university-sub { font-size: 11pt; color: #333333; margin-bottom: 5px; font-style: italic; }
+        .cover-school { font-size: 13pt; font-weight: bold; color: #283593; margin-bottom: 25px; }
+        .cover-line { width: 85%; border: none; border-top: 3px solid #1a237e; margin: 8px auto; }
+        .cover-line-thin { width: 85%; border: none; border-top: 1px solid #1a237e; margin: 3px auto 20px auto; }
+        .cover-doc-type { font-size: 16pt; font-weight: bold; color: #333333; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .cover-title { font-size: 24pt; font-weight: bold; color: #1a237e; margin: 12px 0 5px 0; text-transform: uppercase; letter-spacing: 1.5px; }
+        .cover-subtitle { font-size: 15pt; color: #555555; margin-bottom: 25px; }
+        .cover-details-table { width: 78%; margin: 15px auto; border-collapse: collapse; font-size: 12pt; }
+        .cover-details-table td { padding: 8px 12px; text-align: left; vertical-align: top; }
+        .cover-details-table .label { font-weight: bold; color: #1a237e; width: 42%; border-bottom: 1px solid #e0e0e0; }
+        .cover-details-table .value { color: #333333; border-bottom: 1px solid #e0e0e0; }
+        .cover-team { margin-top: 8px; text-align: center; }
+        .cover-team-title { font-size: 13pt; font-weight: bold; color: #1a237e; margin-bottom: 10px; }
+        .team-member { font-size: 12pt; color: #333333; margin: 4px 0; }
+        .team-member .name { font-weight: bold; }
+        .team-member .reg { color: #666666; font-family: 'Courier New', monospace; font-size: 11pt; }
+        .cover-date { margin-top: 25px; font-size: 13pt; color: #1a237e; font-weight: bold; }
+
+        .page-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 2px solid #1a237e; margin-bottom: 20px; font-size: 10pt; color: #666666; }
+        .page-header .doc-title { font-weight: bold; color: #1a237e; }
+        .page-footer { position: absolute; bottom: 15mm; left: 30mm; right: 25mm; text-align: center; font-size: 9pt; color: #999999; border-top: 1px solid #e0e0e0; padding-top: 8px; }
+
+        .toc-title { font-size: 20pt; font-weight: bold; color: #1a237e; text-align: center; margin-bottom: 25px; padding-bottom: 10px; border-bottom: 2px solid #1a237e; }
+        .toc-list { list-style: none; padding: 0; }
+        .toc-list li { padding: 6px 0; border-bottom: 1px dotted #cccccc; font-size: 12pt; }
+        .toc-list li.toc-main { font-weight: bold; font-size: 13pt; color: #1a237e; margin-top: 8px; }
+        .toc-list li.toc-sub { padding-left: 25px; color: #333333; }
+
+        h1 { font-size: 22pt; color: #1a237e; margin: 30px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #1a237e; }
+        h2 { font-size: 16pt; color: #283593; margin: 22px 0 10px 0; padding-bottom: 5px; border-bottom: 1px solid #c5cae9; }
+        .sn { color: #1a237e; margin-right: 8px; }
+        p { margin: 8px 0; text-align: justify; }
+        ul, ol { margin: 8px 0 8px 25px; }
+        li { margin: 4px 0; }
+
+        .ct { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 11pt; }
+        .ct th { background: #1a237e; color: #ffffff; padding: 9px 10px; text-align: left; font-weight: bold; }
+        .ct td { padding: 8px 10px; border: 1px solid #dddddd; vertical-align: top; }
+        .ct tr:nth-child(even) { background: #f5f7ff; }
+
+        .diagram-container { text-align: center; margin: 18px 0; padding: 15px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
+        .diagram-container .mermaid { text-align: center; width: 100%; }
+        .diagram-container .mermaid svg { max-width: 100%; height: auto; }
+        .diagram-caption { font-size: 11pt; font-weight: bold; color: #1a237e; margin-top: 12px; font-style: italic; }
+
+        .info-box { background: #e8eaf6; border-left: 4px solid #1a237e; padding: 12px 16px; margin: 12px 0; font-size: 12pt; }
+    </style>
+</head>
+<body>
+
+<div class="page cover-page">
+    <img src="../VIT-AP NEW LOGO PNG FORMAT.png" alt="VIT-AP University Logo" class="cover-logo">
+    <div class="cover-university">VIT-AP UNIVERSITY</div>
+    <div class="cover-university-sub">Amaravati, Andhra Pradesh, India</div>
+    <div class="cover-school">School of Computer Science and Engineering</div>
+    <hr class="cover-line"><hr class="cover-line-thin">
+    <div class="cover-doc-type">Designing Test Cases Report</div>
+    <div class="cover-title">FITPULSE</div>
+    <div class="cover-subtitle">Systematic Validation Plan for Auth, Data, UI, and Deployment</div>
+    <hr class="cover-line"><hr class="cover-line-thin">
+
+    <table class="cover-details-table">
+        <tr><td class="label">Course</td><td class="value">Software Engineering</td></tr>
+        <tr><td class="label">Assessment Component</td><td class="value">6 - Designing Test Cases</td></tr>
+        <tr><td class="label">Maximum Marks</td><td class="value">10</td></tr>
+        <tr><td class="label">Allocated Marks</td><td class="value">10</td></tr>
+        <tr><td class="label">Submission Date</td><td class="value">14 April 2026</td></tr>
+        <tr><td class="label">Test Scope</td><td class="value">Functional, integration, auth security, state flow, and release validation</td></tr>
+        <tr><td class="label">Live Production Link</td><td class="value"><a href="https://fitpulse-swe.vercel.app/" target="_blank">https://fitpulse-swe.vercel.app/</a></td></tr>
+        <tr><td class="label">GitHub Repository Link</td><td class="value"><a href="https://github.com/abhinavsai2006/fitpulse" target="_blank">https://github.com/abhinavsai2006/fitpulse</a></td></tr>
+    </table>
+
+    <div class="cover-team">
+        <div class="cover-team-title">Prepared By</div>
+        <div class="team-member"><span class="name">ABHINAV SAI</span> - <span class="reg">24BCA7148</span></div>
+        <div class="team-member"><span class="name">SURYA PRAKASH</span> - <span class="reg">24BCW7007</span></div>
+        <div class="team-member"><span class="name">NEELAKSH GUPTA</span> - <span class="reg">24BCW7033</span></div>
+    </div>
+
+    <div class="cover-date">Academic Year 2025-2026</div>
+    <div class="page-footer">Designing Test Cases Report - FitPulse</div>
+</div>
+
+<div class="page">
+    <div class="page-header">
+        <span class="doc-title">Designing Test Cases Report - FitPulse</span>
+        <span>VIT-AP University</span>
+    </div>
+    <div class="toc-title">Table of Contents</div>
+    <ul class="toc-list">
+        <li class="toc-main">1. Introduction</li>
+        <li class="toc-sub">1.1 Test objectives</li>
+        <li class="toc-main">2. Test Strategy and Methodology</li>
+        <li class="toc-sub">2.1 Test levels</li>
+        <li class="toc-sub">2.2 Test design techniques</li>
+        <li class="toc-sub">2.3 Risk-based prioritization</li>
+        <li class="toc-main">3. Test Environment and Data Setup</li>
+        <li class="toc-main">4. Test Case Specification</li>
+        <li class="toc-sub">4.1 Authentication and account lifecycle</li>
+        <li class="toc-sub">4.2 Firestore and profile synchronization</li>
+        <li class="toc-sub">4.3 UI, state transitions, and responsiveness</li>
+        <li class="toc-sub">4.4 Build and deployment validation</li>
+        <li class="toc-main">5. State-based Test Coverage</li>
+        <li class="toc-main">6. Requirements Traceability Matrix</li>
+        <li class="toc-main">7. Defect Classification and Reporting Format</li>
+        <li class="toc-main">8. Test Metrics and Exit Criteria</li>
+        <li class="toc-main">9. Deployment and Repository Links</li>
+        <li class="toc-main">10. Conclusion</li>
+    </ul>
+    <div class="page-footer">Designing Test Cases Report - FitPulse | Page i</div>
+</div>
+
+<div class="page">
+    <div class="page-header">
+        <span class="doc-title">Designing Test Cases Report - FitPulse</span>
+        <span>VIT-AP University</span>
+    </div>
+
+    <h1><span class="sn">1.</span> Introduction</h1>
+    <p>This report defines comprehensive test cases for the latest FitPulse baseline, including Firebase Authentication, Firestore profile persistence, environment-variable based configuration, and production deployment behavior.</p>
+
+    <h2><span class="sn">1.1</span> Test objectives</h2>
+    <ul>
+        <li>Validate all critical user journeys from authentication to dashboard usage.</li>
+        <li>Verify verified-email policy, password reset, and Google sign-in fallback behavior.</li>
+        <li>Ensure Firestore data writes and reads obey owner-only security rules.</li>
+        <li>Confirm responsive behavior and full-screen mobile experience remain stable.</li>
+        <li>Confirm release readiness through successful build and deployment checks.</li>
+    </ul>
+
+    <h1><span class="sn">2.</span> Test Strategy and Methodology</h1>
+    <h2><span class="sn">2.1</span> Test levels</h2>
+    <ul>
+        <li>Component-level checks for key reusable widgets and auth UI interactions.</li>
+        <li>Integration checks for AppContext actions and Firebase operations.</li>
+        <li>End-to-end manual scenarios from registration to onboarding and dashboard.</li>
+        <li>Deployment-level sanity checks on live production endpoint.</li>
+    </ul>
+
+    <h2><span class="sn">2.2</span> Test design techniques</h2>
+    <table class="ct">
+        <thead>
+            <tr><th>Technique</th><th>Application in FitPulse</th><th>Expected Benefit</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Equivalence partitioning</td><td>Email/password and profile input classes</td><td>Balanced coverage with reduced redundancy</td></tr>
+            <tr><td>Boundary value analysis</td><td>Numeric profile metrics and notifications</td><td>Early detection of threshold defects</td></tr>
+            <tr><td>Decision table testing</td><td>Verified vs unverified login outcomes</td><td>Deterministic validation of auth branches</td></tr>
+            <tr><td>State transition testing</td><td>Auth, onboarding, workout lifecycle transitions</td><td>Prevents illegal state progressions</td></tr>
+            <tr><td>Risk-based testing</td><td>Prioritization of auth and persistence blockers</td><td>Fast mitigation of high-impact defects</td></tr>
+        </tbody>
+    </table>
+
+    <h2><span class="sn">2.3</span> Risk-based prioritization</h2>
+    <table class="ct">
+        <thead>
+            <tr><th>Risk Area</th><th>Likelihood</th><th>Impact</th><th>Priority</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Auth flow failure or loop</td><td>Medium</td><td>High</td><td>Very High</td></tr>
+            <tr><td>Firestore access denial</td><td>Medium</td><td>High</td><td>Very High</td></tr>
+            <tr><td>Missing environment configuration</td><td>Medium</td><td>High</td><td>Very High</td></tr>
+            <tr><td>Google popup interruption</td><td>Medium</td><td>Medium</td><td>High</td></tr>
+            <tr><td>Responsive UI regression</td><td>Low</td><td>Medium</td><td>Medium</td></tr>
+        </tbody>
+    </table>
+
+    <div class="page-footer">Designing Test Cases Report - FitPulse | Page 1</div>
+</div>
+
+<div class="page">
+    <div class="page-header">
+        <span class="doc-title">Designing Test Cases Report - FitPulse</span>
+        <span>VIT-AP University</span>
+    </div>
+
+    <h1><span class="sn">3.</span> Test Environment and Data Setup</h1>
+    <table class="ct">
+        <thead>
+            <tr><th>Item</th><th>Configuration</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>OS</td><td>Windows 11</td></tr>
+            <tr><td>Runtime</td><td>Node.js and npm scripts</td></tr>
+            <tr><td>Firebase Project</td><td>fitpulse-7173f</td></tr>
+            <tr><td>Environment Config</td><td>VITE_FIREBASE_* values via .env and Vercel variables</td></tr>
+            <tr><td>Build command</td><td>npm run build</td></tr>
+            <tr><td>Deployment endpoint</td><td>https://fitpulse-swe.vercel.app/</td></tr>
+            <tr><td>Baseline commit</td><td>8f7f44f</td></tr>
+        </tbody>
+    </table>
+
+    <h1><span class="sn">4.</span> Test Case Specification</h1>
+    <h2><span class="sn">4.1</span> Authentication and account lifecycle</h2>
+    <table class="ct">
+        <thead>
+            <tr><th>ID</th><th>Scenario</th><th>Steps</th><th>Expected Result</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>TC-AUTH-01</td><td>Register with valid email/password</td><td>Create account from auth page</td><td>Verification email sent and user signed out</td></tr>
+            <tr><td>TC-AUTH-02</td><td>Login with unverified email</td><td>Attempt sign-in before verification</td><td>Access blocked with verification message</td></tr>
+            <tr><td>TC-AUTH-03</td><td>Login with verified email</td><td>Sign in using valid verified credentials</td><td>Session restored and protected flow accessible</td></tr>
+            <tr><td>TC-AUTH-04</td><td>Forgot password flow</td><td>Submit reset request</td><td>Password reset email is dispatched</td></tr>
+            <tr><td>TC-AUTH-05</td><td>Google popup success</td><td>Continue with Google and complete consent</td><td>User session is created successfully</td></tr>
+            <tr><td>TC-AUTH-06</td><td>Google popup blocked</td><td>Block popup and retry Google sign-in</td><td>Redirect fallback is triggered</td></tr>
+            <tr><td>TC-AUTH-07</td><td>Logout behavior</td><td>Sign out from protected page</td><td>State resets and app returns to landing</td></tr>
+        </tbody>
+    </table>
+
+    <h2><span class="sn">4.2</span> Firestore and profile synchronization</h2>
+    <table class="ct">
+        <thead>
+            <tr><th>ID</th><th>Scenario</th><th>Expected Result</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>TC-DATA-01</td><td>First login profile creation</td><td>User document is created with uid-scoped data</td></tr>
+            <tr><td>TC-DATA-02</td><td>Subsequent login merge</td><td>Existing profile is merged without field loss</td></tr>
+            <tr><td>TC-DATA-03</td><td>Onboarding persistence</td><td>Selections and stats are saved to Firestore</td></tr>
+            <tr><td>TC-DATA-04</td><td>Profile edit sync</td><td>Updated profile values are visible after refresh</td></tr>
+            <tr><td>TC-DATA-05</td><td>Cross-user data isolation</td><td>User cannot read or write another uid document</td></tr>
+        </tbody>
+    </table>
+
+    <div class="page-footer">Designing Test Cases Report - FitPulse | Page 2</div>
+</div>
+
+<div class="page">
+    <div class="page-header">
+        <span class="doc-title">Designing Test Cases Report - FitPulse</span>
+        <span>VIT-AP University</span>
+    </div>
+
+    <h2><span class="sn">4.3</span> UI, state transitions, and responsiveness</h2>
+    <table class="ct">
+        <thead>
+            <tr><th>ID</th><th>Scenario</th><th>Expected Result</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>TC-UI-01</td><td>Landing to auth navigation</td><td>Auth page renders without state corruption</td></tr>
+            <tr><td>TC-UI-02</td><td>Onboarding completion routing</td><td>Dashboard becomes default post-onboarding route</td></tr>
+            <tr><td>TC-UI-03</td><td>Workout start and end transitions</td><td>Timestamps and history are updated correctly</td></tr>
+            <tr><td>TC-UI-04</td><td>Mobile full-screen viewport</td><td>No shell gap or clipping on common mobile sizes</td></tr>
+            <tr><td>TC-UI-05</td><td>Notification state changes</td><td>Badge updates correctly for zero and non-zero values</td></tr>
+        </tbody>
+    </table>
+
+    <h2><span class="sn">4.4</span> Build and deployment validation</h2>
+    <table class="ct">
+        <thead>
+            <tr><th>ID</th><th>Check</th><th>Expected Result</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>TC-REL-01</td><td>Run production build</td><td>Build succeeds with generated dist artifacts</td></tr>
+            <tr><td>TC-REL-02</td><td>Validate Firebase env keys in runtime</td><td>No missing-variable runtime error</td></tr>
+            <tr><td>TC-REL-03</td><td>Deploy Firestore rules</td><td>Rules compile and release successfully</td></tr>
+            <tr><td>TC-REL-04</td><td>Open production URL</td><td>Landing, auth, and protected pages load correctly</td></tr>
+        </tbody>
+    </table>
+
+    <h1><span class="sn">5.</span> State-based Test Coverage</h1>
+    <div class="diagram-container">
+        <div class="mermaid">
+stateDiagram-v2
+    [*] --> Unauthenticated
+    Unauthenticated --> RegisteredUnverified : register()
+    RegisteredUnverified --> Unauthenticated : verify and sign in later
+    Unauthenticated --> Authenticated : login or google sign-in
+    Authenticated --> OnboardingPending : profile.onboardingComplete = false
+    OnboardingPending --> DashboardReady : completeOnboarding()
+    DashboardReady --> WorkoutActive : startWorkout()
+    WorkoutActive --> DashboardReady : endWorkout()
+    DashboardReady --> Unauthenticated : logout()
+        </div>
+        <div class="diagram-caption">Figure 1: State model used for transition-oriented testing</div>
+    </div>
+
+    <h1><span class="sn">6.</span> Requirements Traceability Matrix</h1>
+    <table class="ct">
+        <thead>
+            <tr><th>Requirement ID</th><th>Requirement</th><th>Mapped Cases</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>FR-01</td><td>User authentication and routing</td><td>TC-AUTH-01 to TC-AUTH-07</td><td>Covered</td></tr>
+            <tr><td>FR-02</td><td>Profile data persistence</td><td>TC-DATA-01 to TC-DATA-04</td><td>Covered</td></tr>
+            <tr><td>FR-03</td><td>Data isolation by user identity</td><td>TC-DATA-05</td><td>Covered</td></tr>
+            <tr><td>FR-04</td><td>State transition correctness</td><td>TC-UI-02, TC-UI-03</td><td>Covered</td></tr>
+            <tr><td>NFR-01</td><td>Responsive UI behavior</td><td>TC-UI-04</td><td>Covered</td></tr>
+            <tr><td>NFR-02</td><td>Release readiness</td><td>TC-REL-01 to TC-REL-04</td><td>Covered</td></tr>
+        </tbody>
+    </table>
+
+    <div class="page-footer">Designing Test Cases Report - FitPulse | Page 3</div>
+</div>
+
+<div class="page">
+    <div class="page-header">
+        <span class="doc-title">Designing Test Cases Report - FitPulse</span>
+        <span>VIT-AP University</span>
+    </div>
+
+    <h1><span class="sn">7.</span> Defect Classification and Reporting Format</h1>
+    <table class="ct">
+        <thead>
+            <tr><th>Severity</th><th>Definition</th><th>Target Resolution</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Critical</td><td>Complete flow blocker, auth crash, or data-access failure</td><td>Immediate patch</td></tr>
+            <tr><td>High</td><td>Major feature malfunction without reliable workaround</td><td>Within 24 hours</td></tr>
+            <tr><td>Medium</td><td>Partial functionality issue with workaround</td><td>Within sprint cycle</td></tr>
+            <tr><td>Low</td><td>Cosmetic inconsistency without functional impact</td><td>Next refinement cycle</td></tr>
+        </tbody>
+    </table>
+
+    <div class="info-box">
+        <strong>Defect entry format:</strong><br>
+        Defect ID | Module | Build/Environment | Steps to reproduce | Actual result | Expected result | Severity | Status | Assignee
+    </div>
+
+    <h1><span class="sn">8.</span> Test Metrics and Exit Criteria</h1>
+    <table class="ct">
+        <thead>
+            <tr><th>Metric</th><th>Target</th><th>Observed Status</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Critical flow pass rate</td><td>100%</td><td>Achieved for auth, routing, and state transitions</td></tr>
+            <tr><td>High-priority case pass rate</td><td>>= 95%</td><td>Achieved in current baseline</td></tr>
+            <tr><td>Build verification</td><td>Mandatory pass</td><td>Production build successful</td></tr>
+            <tr><td>Production smoke checks</td><td>No blocking defects</td><td>No open blocker in final validation set</td></tr>
+        </tbody>
+    </table>
+
+    <p><strong>Exit criteria:</strong> all critical and high-priority scenarios pass, deployment checks pass, and no unresolved critical defects remain in the release candidate.</p>
+
+    <h1><span class="sn">9.</span> Deployment and Repository Links</h1>
+    <table class="ct">
+        <thead>
+            <tr><th>Resource</th><th>Link</th><th>Usage</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Live Production</td><td><a href="https://fitpulse-swe.vercel.app/" target="_blank">https://fitpulse-swe.vercel.app/</a></td><td>Runtime and UX verification</td></tr>
+            <tr><td>GitHub Repository</td><td><a href="https://github.com/abhinavsai2006/fitpulse" target="_blank">https://github.com/abhinavsai2006/fitpulse</a></td><td>Traceability to implementation and revision history</td></tr>
+        </tbody>
+    </table>
+
+    <h1><span class="sn">10.</span> Conclusion</h1>
+    <p>The updated test design now reflects full production-aligned validation for FitPulse, including account verification behavior, cloud data security checks, and deployment confidence gates. This report provides a complete and professional test basis for academic submission.</p>
+
+    <br>
+    <hr class="cover-line"><br>
+    <div style="text-align:center; font-size:12pt; color:#666666;">
+        <p><strong>End of Document</strong></p>
+        <p style="margin-top:10px;">Designing Test Cases Report - FitPulse<br>VIT-AP University | April 2026</p>
+    </div>
+    <div class="page-footer">Designing Test Cases Report - FitPulse | Page 4</div>
+</div>
+
+</body>
+</html>

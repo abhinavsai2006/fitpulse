@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementation and Coding Report - FitPulse</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#e8eaf6',
+                primaryTextColor: '#1a237e',
+                primaryBorderColor: '#1a237e',
+                lineColor: '#283593',
+                secondaryColor: '#f5f7ff',
+                tertiaryColor: '#ffffff',
+                fontFamily: 'Segoe UI, Arial, sans-serif',
+                fontSize: '13px'
+            },
+            flowchart: { curve: 'basis', padding: 18, nodeSpacing: 48, rankSpacing: 58, htmlLabels: true }
+        });
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Times New Roman', Times, serif; font-size: 13pt; line-height: 1.6; color: #1a1a1a; background: #f5f5f5; }
+        .page { width: 210mm; min-height: 297mm; margin: 10mm auto; padding: 25mm 25mm 30mm 30mm; background: #ffffff; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12); page-break-after: always; position: relative; }
+        .page:last-child { page-break-after: avoid; }
+        @media print {
+            body { background: #ffffff; }
+            .page { margin: 0; padding: 20mm 20mm 25mm 25mm; box-shadow: none; width: 100%; min-height: auto; }
+        }
+
+        .cover-page { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; padding-top: 15mm; }
+        .cover-logo { width: 160px; height: auto; margin-bottom: 10px; }
+        .cover-university { font-size: 20pt; font-weight: bold; color: #1a237e; margin-bottom: 2px; letter-spacing: 1px; }
+        .cover-university-sub { font-size: 11pt; color: #333333; margin-bottom: 5px; font-style: italic; }
+        .cover-school { font-size: 13pt; font-weight: bold; color: #283593; margin-bottom: 25px; }
+        .cover-line { width: 85%; border: none; border-top: 3px solid #1a237e; margin: 8px auto; }
+        .cover-line-thin { width: 85%; border: none; border-top: 1px solid #1a237e; margin: 3px auto 20px auto; }
+        .cover-doc-type { font-size: 16pt; font-weight: bold; color: #333333; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .cover-title { font-size: 24pt; font-weight: bold; color: #1a237e; margin: 12px 0 5px 0; text-transform: uppercase; letter-spacing: 1.5px; }
+        .cover-subtitle { font-size: 15pt; color: #555555; margin-bottom: 25px; }
+        .cover-details-table { width: 82%; margin: 15px auto; border-collapse: collapse; font-size: 12pt; }
+        .cover-details-table td { padding: 8px 12px; text-align: left; vertical-align: top; }
+        .cover-details-table .label { font-weight: bold; color: #1a237e; width: 43%; border-bottom: 1px solid #e0e0e0; }
+        .cover-details-table .value { color: #333333; border-bottom: 1px solid #e0e0e0; }
+        .cover-team { margin-top: 8px; text-align: center; }
+        .cover-team-title { font-size: 13pt; font-weight: bold; color: #1a237e; margin-bottom: 10px; }
+        .team-member { font-size: 12pt; color: #333333; margin: 4px 0; }
+        .team-member .name { font-weight: bold; }
+        .team-member .reg { color: #666666; font-family: 'Courier New', monospace; font-size: 11pt; }
+        .cover-date { margin-top: 25px; font-size: 13pt; color: #1a237e; font-weight: bold; }
+
+        .page-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 2px solid #1a237e; margin-bottom: 20px; font-size: 10pt; color: #666666; }
+        .page-header .doc-title { font-weight: bold; color: #1a237e; }
+        .page-footer { position: absolute; bottom: 15mm; left: 30mm; right: 25mm; text-align: center; font-size: 9pt; color: #999999; border-top: 1px solid #e0e0e0; padding-top: 8px; }
+
+        .toc-title { font-size: 20pt; font-weight: bold; color: #1a237e; text-align: center; margin-bottom: 25px; padding-bottom: 10px; border-bottom: 2px solid #1a237e; }
+        .toc-list { list-style: none; padding: 0; }
+        .toc-list li { padding: 6px 0; border-bottom: 1px dotted #cccccc; font-size: 12pt; }
+        .toc-list li.toc-main { font-weight: bold; font-size: 13pt; color: #1a237e; margin-top: 8px; }
+        .toc-list li.toc-sub { padding-left: 25px; color: #333333; }
+
+        h1 { font-size: 22pt; color: #1a237e; margin: 30px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #1a237e; }
+        h2 { font-size: 16pt; color: #283593; margin: 22px 0 10px 0; padding-bottom: 5px; border-bottom: 1px solid #c5cae9; }
+        h3 { font-size: 13pt; color: #3949ab; margin: 16px 0 8px 0; }
+        .sn { color: #1a237e; margin-right: 8px; }
+        p { margin: 8px 0; text-align: justify; }
+        ul, ol { margin: 8px 0 8px 25px; }
+        li { margin: 4px 0; }
+
+        .ct { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 11pt; }
+        .ct th { background: #1a237e; color: #ffffff; padding: 9px 10px; text-align: left; font-weight: bold; }
+        .ct td { padding: 8px 10px; border: 1px solid #dddddd; vertical-align: top; }
+        .ct tr:nth-child(even) { background: #f5f7ff; }
+
+        .diagram-container { text-align: center; margin: 18px 0; padding: 15px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
+        .diagram-container .mermaid { text-align: center; width: 100%; }
+        .diagram-container .mermaid svg { max-width: 100%; height: auto; }
+        .diagram-caption { font-size: 11pt; font-weight: bold; color: #1a237e; margin-top: 12px; font-style: italic; }
+
+        .info-box { background: #e8eaf6; border-left: 4px solid #1a237e; padding: 12px 16px; margin: 12px 0; font-size: 12pt; }
+    </style>
+</head>
+<body>
+
+<div class="page cover-page">
+    <img src="../VIT-AP NEW LOGO PNG FORMAT.png" alt="VIT-AP University Logo" class="cover-logo">
+    <div class="cover-university">VIT-AP UNIVERSITY</div>
+    <div class="cover-university-sub">Amaravati, Andhra Pradesh, India</div>
+    <div class="cover-school">School of Computer Science and Engineering</div>
+    <hr class="cover-line"><hr class="cover-line-thin">
+    <div class="cover-doc-type">Implementation and Coding Report</div>
+    <div class="cover-title">FITPULSE</div>
+    <div class="cover-subtitle">Detailed Development and Production Readiness Documentation</div>
+    <hr class="cover-line"><hr class="cover-line-thin">
+
+    <table class="cover-details-table">
+        <tr><td class="label">Course</td><td class="value">Software Engineering</td></tr>
+        <tr><td class="label">Assessment Component</td><td class="value">5 - Implementation and Coding</td></tr>
+        <tr><td class="label">Maximum Marks</td><td class="value">10</td></tr>
+        <tr><td class="label">Allocated Marks</td><td class="value">10</td></tr>
+        <tr><td class="label">Submission Date</td><td class="value">14 April 2026</td></tr>
+        <tr><td class="label">Implementation Baseline Commit</td><td class="value">8f7f44f</td></tr>
+        <tr><td class="label">Technology Stack</td><td class="value">React 19, Vite 8, Firebase Auth, Firestore, Vercel</td></tr>
+        <tr><td class="label">Live Production Link</td><td class="value"><a href="https://fitpulse-swe.vercel.app/" target="_blank">https://fitpulse-swe.vercel.app/</a></td></tr>
+        <tr><td class="label">GitHub Repository Link</td><td class="value"><a href="https://github.com/abhinavsai2006/fitpulse" target="_blank">https://github.com/abhinavsai2006/fitpulse</a></td></tr>
+    </table>
+
+    <div class="cover-team">
+        <div class="cover-team-title">Prepared By</div>
+        <div class="team-member"><span class="name">ABHINAV SAI</span> - <span class="reg">24BCA7148</span></div>
+        <div class="team-member"><span class="name">SURYA PRAKASH</span> - <span class="reg">24BCW7007</span></div>
+        <div class="team-member"><span class="name">NEELAKSH GUPTA</span> - <span class="reg">24BCW7033</span></div>
+    </div>
+
+    <div class="cover-date">Academic Year 2025-2026</div>
+    <div class="page-footer">Implementation and Coding Report - FitPulse</div>
+</div>
+
+<div class="page">
+    <div class="page-header">
+        <span class="doc-title">Implementation and Coding Report - FitPulse</span>
+        <span>VIT-AP University</span>
+    </div>
+    <div class="toc-title">Table of Contents</div>
+    <ul class="toc-list">
+        <li class="toc-main">1. Introduction</li>
+        <li class="toc-sub">1.1 Implementation goals</li>
+        <li class="toc-main">2. Development Environment and Toolchain</li>
+        <li class="toc-main">3. Architecture and Module Design</li>
+        <li class="toc-sub">3.1 Frontend composition</li>
+        <li class="toc-sub">3.2 Firebase integration model</li>
+        <li class="toc-main">4. Core Implementation Details</li>
+        <li class="toc-sub">4.1 Authentication workflows</li>
+        <li class="toc-sub">4.2 State management and routing</li>
+        <li class="toc-sub">4.3 User profile and onboarding persistence</li>
+        <li class="toc-sub">4.4 Security and configuration hardening</li>
+        <li class="toc-main">5. Build, Quality, and Validation</li>
+        <li class="toc-main">6. Deployment and Release Operations</li>
+        <li class="toc-main">7. Challenges and Resolutions</li>
+        <li class="toc-main">8. Key Deliverables</li>
+        <li class="toc-main">9. Conclusion</li>
+    </ul>
+    <div class="page-footer">Implementation and Coding Report - FitPulse | Page i</div>
+</div>
+
+<div class="page">
+    <div class="page-header">
+        <span class="doc-title">Implementation and Coding Report - FitPulse</span>
+        <span>VIT-AP University</span>
+    </div>
+
+    <h1><span class="sn">1.</span> Introduction</h1>
+    <p>This report documents the complete implementation phase of FitPulse with emphasis on production-grade authentication, cloud-backed user data, and deployment stability. The coding work evolved from a UI-first prototype to a secured and deployable web application with Firebase integration.</p>
+
+    <h2><span class="sn">1.1</span> Implementation goals</h2>
+    <ul>
+        <li>Implement reliable user authentication with email/password and Google sign-in.</li>
+        <li>Persist user profile and onboarding data in Firestore with secure access rules.</li>
+        <li>Improve runtime resilience by handling popup, redirect, and profile-sync edge cases.</li>
+        <li>Move environment-sensitive configuration outside source code and into environment variables.</li>
+        <li>Deliver a production deployment that is verifiable through live and repository links.</li>
+    </ul>
+
+    <h1><span class="sn">2.</span> Development Environment and Toolchain</h1>
+    <table class="ct">
+        <thead>
+            <tr><th>Area</th><th>Tools and Configuration</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Frontend framework</td><td>React 19 with Vite 8 build pipeline</td><td>Fast development iteration and optimized production bundles</td></tr>
+            <tr><td>State management</td><td>Context API with reducer pattern</td><td>Predictable global state and action-based transitions</td></tr>
+            <tr><td>Authentication</td><td>Firebase Authentication</td><td>Email/password, verification flow, reset email, Google sign-in</td></tr>
+            <tr><td>Data persistence</td><td>Cloud Firestore</td><td>User profile, onboarding, and app-related account data</td></tr>
+            <tr><td>Deployment</td><td>Vercel</td><td>Continuous hosting and production delivery</td></tr>
+            <tr><td>Source control</td><td>GitHub repository with authored commits</td><td>Version traceability and academic submission evidence</td></tr>
+        </tbody>
+    </table>
+
+    <h1><span class="sn">3.</span> Architecture and Module Design</h1>
+    <h2><span class="sn">3.1</span> Frontend composition</h2>
+    <p>The application is organized into pages, reusable components, data helpers, and a centralized AppContext. Screen transitions and data updates are driven by reducer actions to avoid inconsistent state mutations.</p>
+
+    <h2><span class="sn">3.2</span> Firebase integration model</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+flowchart TD
+    A[User Browser] --> B[React UI Layer]
+    B --> C[AppContext and Reducer]
+    C --> D[firebase.js Service Layer]
+    D --> E[Firebase Auth]
+    D --> F[Cloud Firestore]
+    C --> G[Protected Routing and Page State]
+    H[Vercel Env Variables] --> D
+    I[Firestore Rules] --> F
+
+    style A fill:#f5f7ff,stroke:#1a237e,color:#1a237e
+    style B fill:#e8eaf6,stroke:#1a237e,color:#1a237e
+    style C fill:#d4edd9,stroke:#2e7d32,color:#1b5e20
+    style D fill:#d4edd9,stroke:#2e7d32,color:#1b5e20
+    style E fill:#ffe5be,stroke:#ef6c00,color:#e65100
+    style F fill:#ffe5be,stroke:#ef6c00,color:#e65100
+    style G fill:#cae8e3,stroke:#00796b,color:#004d40
+    style H fill:#e8eaf6,stroke:#1a237e,color:#1a237e
+    style I fill:#fce4ec,stroke:#ad1457,color:#880e4f
+        </div>
+        <div class="diagram-caption">Figure 1: FitPulse frontend and Firebase integration architecture</div>
+    </div>
+
+    <div class="page-footer">Implementation and Coding Report - FitPulse | Page 1</div>
+</div>
+
+<div class="page">
+    <div class="page-header">
+        <span class="doc-title">Implementation and Coding Report - FitPulse</span>
+        <span>VIT-AP University</span>
+    </div>
+
+    <h1><span class="sn">4.</span> Core Implementation Details</h1>
+
+    <h2><span class="sn">4.1</span> Authentication workflows</h2>
+    <table class="ct">
+        <thead>
+            <tr><th>Flow</th><th>Implemented Behavior</th><th>Outcome</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Email registration</td><td>Create account, send verification email, initialize profile, sign out until verified</td><td>Verified-account-first onboarding control</td></tr>
+            <tr><td>Email login</td><td>Authenticate credentials, block unverified accounts, resend verification</td><td>Reduced unauthorized incomplete-account sessions</td></tr>
+            <tr><td>Google sign-in</td><td>Popup-first strategy with redirect fallback for blocked/cancelled popup</td><td>Smoother login completion across browser restrictions</td></tr>
+            <tr><td>Password reset</td><td>Forgot-password trigger sends reset email from auth page</td><td>Self-service account recovery support</td></tr>
+            <tr><td>Logout</td><td>Sign out from Firebase and reset protected state</td><td>Clean session termination and route reset</td></tr>
+        </tbody>
+    </table>
+
+    <h2><span class="sn">4.2</span> State management and routing</h2>
+    <p>The reducer in AppContext handles NAVIGATE, LOGIN, RESTORE_SESSION, LOGOUT, COMPLETE_ONBOARDING, START_WORKOUT, and END_WORKOUT actions. Route restoration is controlled by auth readiness and onboarding status, preventing landing-page loops after successful sign-in.</p>
+
+    <h2><span class="sn">4.3</span> User profile and onboarding persistence</h2>
+    <ul>
+        <li>ensureUserProfile creates or merges Firestore profile data on auth state changes.</li>
+        <li>createUserViewModel merges profile values with safe defaults for UI rendering.</li>
+        <li>completeOnboarding writes onboarding selections and stats to Firestore.</li>
+        <li>Profile page now displays authenticated user data instead of static mock values.</li>
+    </ul>
+
+    <h2><span class="sn">4.4</span> Security and configuration hardening</h2>
+    <table class="ct">
+        <thead>
+            <tr><th>Hardening Step</th><th>Implementation</th><th>Impact</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Secret migration</td><td>Firebase config moved from source to VITE_FIREBASE_* environment variables</td><td>No sensitive deployment values in tracked source</td></tr>
+            <tr><td>Environment template</td><td>.env.example added with setup guidance</td><td>Improved reproducible setup for collaborators</td></tr>
+            <tr><td>Runtime config sanitization</td><td>Environment values normalized with trim before Firebase initialization</td><td>Prevents hidden whitespace misconfiguration</td></tr>
+            <tr><td>Rules enforcement</td><td>Firestore rules restrict read/write access to document owner</td><td>Protects user data from cross-account access</td></tr>
+        </tbody>
+    </table>
+
+    <div class="info-box">
+        <strong>Production readiness note:</strong><br>
+        The implementation now includes secure configuration boundaries, owner-scoped database rules, and robust auth edge-case handling to support real-world usage.
+    </div>
+
+    <div class="page-footer">Implementation and Coding Report - FitPulse | Page 2</div>
+</div>
+
+<div class="page">
+    <div class="page-header">
+        <span class="doc-title">Implementation and Coding Report - FitPulse</span>
+        <span>VIT-AP University</span>
+    </div>
+
+    <h1><span class="sn">5.</span> Build, Quality, and Validation</h1>
+    <table class="ct">
+        <thead>
+            <tr><th>Validation Item</th><th>Command or Method</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Production build generation</td><td>npm run build</td><td>Pass</td></tr>
+            <tr><td>Auth state restoration checks</td><td>Manual run across login/logout/refresh flows</td><td>Pass</td></tr>
+            <tr><td>Profile persistence checks</td><td>Firestore profile creation and update validation</td><td>Pass</td></tr>
+            <tr><td>Rule deployment validation</td><td>firebase deploy --only firestore:rules</td><td>Pass</td></tr>
+            <tr><td>Production redeploy</td><td>vercel deploy --prod --yes</td><td>Pass</td></tr>
+        </tbody>
+    </table>
+
+    <h1><span class="sn">6.</span> Deployment and Release Operations</h1>
+    <table class="ct">
+        <thead>
+            <tr><th>Operation</th><th>Description</th><th>Result</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Vercel project alignment</td><td>Confirmed deployment scope under user account and linked project</td><td>Completed</td></tr>
+            <tr><td>Environment synchronization</td><td>VITE_FIREBASE_* values updated for Development and Production targets</td><td>Completed</td></tr>
+            <tr><td>Preview environment note</td><td>CLI requires branch-scoped preview variable setup in non-interactive mode</td><td>Documented</td></tr>
+            <tr><td>Firestore rules publishing</td><td>Rules deployed to fitpulse-7173f and confirmed active</td><td>Completed</td></tr>
+            <tr><td>Final production alias</td><td>Live URL verified as fitpulse-swe.vercel.app</td><td>Completed</td></tr>
+        </tbody>
+    </table>
+
+    <h1><span class="sn">7.</span> Challenges and Resolutions</h1>
+    <table class="ct">
+        <thead>
+            <tr><th>Challenge</th><th>Root Cause</th><th>Resolution</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Auth flow bouncing to landing</td><td>Timing and state synchronization edge cases</td><td>Auth readiness and profile sync handling improved in AppContext</td></tr>
+            <tr><td>Google popup interruption</td><td>Popup blocked or cancelled in browser</td><td>Added popup-first flow with redirect fallback</td></tr>
+            <tr><td>Runtime config failures</td><td>Missing or malformed deployed environment values</td><td>Moved to env-based config and normalized values before initialization</td></tr>
+            <tr><td>Secret scanning alert</td><td>Firebase config present in tracked source</td><td>Migrated to environment variables and updated ignore/template files</td></tr>
+            <tr><td>Firestore access issues</td><td>Rules context mismatch during deployment and auth evolution</td><td>Standardized owner-only rules and redeployed to correct project</td></tr>
+        </tbody>
+    </table>
+
+    <div class="page-footer">Implementation and Coding Report - FitPulse | Page 3</div>
+</div>
+
+<div class="page">
+    <div class="page-header">
+        <span class="doc-title">Implementation and Coding Report - FitPulse</span>
+        <span>VIT-AP University</span>
+    </div>
+
+    <h1><span class="sn">8.</span> Key Deliverables</h1>
+    <ul>
+        <li>Fully implemented multi-page React application with reducer-driven state architecture.</li>
+        <li>Production-integrated Firebase Authentication (email/password + Google sign-in).</li>
+        <li>Email verification enforcement and forgot-password recovery workflow.</li>
+        <li>Cloud Firestore user-profile lifecycle with onboarding persistence.</li>
+        <li>Secure Firestore rules and environment-variable based secret management.</li>
+        <li>Deployment-ready build and live production verification on Vercel.</li>
+        <li>Updated documentation artifacts for academic submission.</li>
+    </ul>
+
+    <h1><span class="sn">9.</span> Conclusion</h1>
+    <p>The implementation phase of FitPulse has progressed from UI-level development to a robust, cloud-integrated application suitable for demonstration and evaluation. Core coding objectives have been achieved with focus on maintainability, authentication reliability, data security, and deployment stability.</p>
+    <p>By combining modular frontend engineering with Firebase services and controlled deployment operations, the project now reflects professional software engineering practices expected in a complete academic submission.</p>
+
+    <h2><span class="sn">9.1</span> Submission links</h2>
+    <table class="ct">
+        <thead>
+            <tr><th>Resource</th><th>Link</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Live Production</td><td><a href="https://fitpulse-swe.vercel.app/" target="_blank">https://fitpulse-swe.vercel.app/</a></td><td>Functional demonstration and final validation</td></tr>
+            <tr><td>GitHub Repository</td><td><a href="https://github.com/abhinavsai2006/fitpulse" target="_blank">https://github.com/abhinavsai2006/fitpulse</a></td><td>Source code and revision history evidence</td></tr>
+        </tbody>
+    </table>
+
+    <br>
+    <hr class="cover-line"><br>
+    <div style="text-align:center; font-size:12pt; color:#666666;">
+        <p><strong>End of Document</strong></p>
+        <p style="margin-top:10px;">Implementation and Coding Report - FitPulse<br>VIT-AP University | April 2026</p>
+    </div>
+    <div class="page-footer">Implementation and Coding Report - FitPulse | Page 4</div>
+</div>
+
+</body>
+</html>
