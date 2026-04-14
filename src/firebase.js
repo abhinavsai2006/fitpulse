@@ -4,14 +4,32 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDXjIkP0EUrpIRn6jGUYtgKw23BEdRNw08',
-  authDomain: 'fitpulse-7173f.firebaseapp.com',
-  projectId: 'fitpulse-7173f',
-  storageBucket: 'fitpulse-7173f.firebasestorage.app',
-  messagingSenderId: '605502627326',
-  appId: '1:605502627326:web:13d3f075d08c56daff74af',
-  measurementId: 'G-2QTYBYFE8X',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
+
+const requiredFirebaseKeys = [
+  'apiKey',
+  'authDomain',
+  'projectId',
+  'storageBucket',
+  'messagingSenderId',
+  'appId',
+];
+
+const missingFirebaseKeys = requiredFirebaseKeys.filter((key) => !firebaseConfig[key]);
+
+if (missingFirebaseKeys.length) {
+  throw new Error(
+    `Missing Firebase environment variables for: ${missingFirebaseKeys.join(', ')}. ` +
+    'Add VITE_FIREBASE_* values in your local .env and Vercel project settings.'
+  );
+}
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -119,6 +137,14 @@ export function createUserViewModel(defaultUser, firebaseUser, profile) {
   return {
     ...defaultUser,
     ...profile,
+    stats: {
+      ...(defaultUser.stats || {}),
+      ...(profile?.stats || {}),
+    },
+    goals: {
+      ...(defaultUser.goals || {}),
+      ...(profile?.goals || {}),
+    },
     id: firebaseUser?.uid || defaultUser.id,
     name,
     initials,

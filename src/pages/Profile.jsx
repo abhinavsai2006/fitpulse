@@ -1,8 +1,8 @@
 import { Bell, Camera, ChevronRight, LogOut, Settings, Shield, Star, Trophy, User } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Layout from '../components/Layout';
 import { useApp } from '../context/AppContext';
-import { badges, recentActivities, user } from '../data/mockData';
+import { badges, recentActivities } from '../data/mockData';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: User },
@@ -29,15 +29,112 @@ function ToggleSwitch({ enabled, onToggle, label }) {
 }
 
 export default function Profile() {
-  const { logout } = useApp();
+  const { logout, userData, setUserData } = useApp();
   const [activeTab, setActiveTab] = useState('overview');
-  const [name, setName] = useState(user.name);
+  const [name, setName] = useState(userData?.name || '');
   const [preferences, setPreferences] = useState({ units: 'Imperial', weekStart: 'Monday', language: 'English', theme: 'Dark' });
   const [notifications, setNotifications] = useState({ workoutReminders: true, achievementAlerts: true, weeklySummary: true, nutritionReminders: false, friendActivity: true });
+
+  useEffect(() => {
+    setName(userData?.name || '');
+  }, [userData?.name]);
+
+  const profile = useMemo(() => {
+    const safeName = userData?.name || 'FitPulse User';
+    const safeInitials = userData?.initials ||
+      safeName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() || '')
+        .join('') || 'FP';
+    const generatedHandle = `@${safeName.toLowerCase().replace(/[^a-z0-9]+/g, '') || 'fitpulseuser'}`;
+
+    return {
+      name: safeName,
+      initials: safeInitials,
+      handle: userData?.handle || generatedHandle,
+      email: userData?.email || 'No email',
+      level: userData?.level || 'Member',
+      streak: Number.isFinite(userData?.streak) ? userData.streak : 0,
+      totalWorkouts: Number.isFinite(userData?.totalWorkouts) ? userData.totalWorkouts : 0,
+      joinedDate: userData?.joinedDate || '-',
+      stats: {
+        weight: userData?.stats?.weight ?? '--',
+        weightUnit: userData?.stats?.weightUnit || 'lbs',
+        height: userData?.stats?.height ?? '--',
+        heightUnit: userData?.stats?.heightUnit || 'in',
+        bodyFat: userData?.stats?.bodyFat ?? '--',
+        vo2Max: userData?.stats?.vo2Max ?? '--',
+        rhr: userData?.stats?.rhr ?? '--',
+      },
+      goals: {
+        dailyCalories: userData?.goals?.dailyCalories ?? 0,
+        dailySteps: userData?.goals?.dailySteps ?? 0,
+        weeklyWorkouts: userData?.goals?.weeklyWorkouts ?? 0,
+        targetWeight: userData?.goals?.targetWeight ?? '--',
+      },
+    };
+  }, [userData]);
+
+  const saveDisplayName = async () => {
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === profile.name) return;
+
+    const initials =
+      trimmed
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() || '')
+        .join('') || 'FP';
+
+    const generatedHandle = `@${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '') || 'fitpulseuser'}`;
+
+    await setUserData({
+      name: trimmed,
+      initials,
+      handle: profile.handle || generatedHandle,
+    });
+  };
 
   const caloriesTotal = recentActivities.reduce((s, a) => s + a.calories, 0);
   const hoursTotal = Math.round(recentActivities.reduce((s, a) => s + a.duration, 0) / 60);
   const toggleNotif = (key) => setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const bodyStatRows = [
+    {
+      label: 'Weight',
+      value: profile.stats.weight === '--' ? '--' : `${profile.stats.weight} ${profile.stats.weightUnit}`,
+    },
+    {
+      label: 'Height',
+      value: profile.stats.height === '--' ? '--' : `${profile.stats.height} ${profile.stats.heightUnit}`,
+    },
+    {
+      label: 'Body Fat',
+      value: profile.stats.bodyFat === '--' ? '--' : `${profile.stats.bodyFat}%`,
+    },
+    {
+      label: 'VO2 Max',
+      value: profile.stats.vo2Max === '--' ? '--' : `${profile.stats.vo2Max} ml/kg/min`,
+    },
+    {
+      label: 'Resting HR',
+      value: profile.stats.rhr === '--' ? '--' : `${profile.stats.rhr} bpm`,
+    },
+  ];
+
+  const dailyGoalRows = [
+    { label: 'Daily Calories', value: Number(profile.goals.dailyCalories || 0).toLocaleString(), unit: 'kcal' },
+    { label: 'Daily Steps', value: Number(profile.goals.dailySteps || 0).toLocaleString(), unit: 'steps' },
+    { label: 'Weekly Workouts', value: profile.goals.weeklyWorkouts || 0, unit: 'sessions' },
+    {
+      label: 'Target Weight',
+      value: profile.goals.targetWeight === '--' ? '--' : profile.goals.targetWeight,
+      unit: profile.goals.targetWeight === '--' ? '' : 'lbs',
+    },
+  ];
 
   return (
     <Layout>
@@ -45,16 +142,16 @@ export default function Profile() {
         <article className="fp-panel animate-fade-up p-5 md:p-6 rounded-[18px]">
           <div className="flex flex-wrap items-center gap-5">
             <div className="relative flex-shrink-0">
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF6B47] to-[#FF8A5C] text-2xl font-bold text-white shadow-[0_8px_24px_rgba(255,107,71,0.3)]">{user.initials}</div>
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF6B47] to-[#FF8A5C] text-2xl font-bold text-white shadow-[0_8px_24px_rgba(255,107,71,0.3)]">{profile.initials}</div>
               <button type="button" className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#FF6B47] text-white shadow-md"><Camera size={12} strokeWidth={2.5} /></button>
             </div>
             <div className="min-w-0 flex-1">
-              <input value={name} onChange={(e) => setName(e.target.value)} className="w-full border-0 bg-transparent text-2xl font-bold text-[#f0f0f5] font-display outline-none focus:bg-white/[0.04] focus:px-2 focus:rounded-lg transition-all" />
-              <p className="text-sm font-semibold text-[#555b6e] mt-0.5">{user.handle} · {user.email}</p>
+              <input value={name} onChange={(e) => setName(e.target.value)} onBlur={saveDisplayName} className="w-full border-0 bg-transparent text-2xl font-bold text-[#f0f0f5] font-display outline-none focus:bg-white/[0.04] focus:px-2 focus:rounded-lg transition-all" />
+              <p className="text-sm font-semibold text-[#555b6e] mt-0.5">{profile.handle} · {profile.email}</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                <span className="fp-pill bg-[#FF6B47]/15 text-[#FF6B47] border-[#FF6B47]/20"><Star size={10} fill="#FF6B47" strokeWidth={0} />{user.level}</span>
-                <span className="fp-pill">🔥 {user.streak}-day streak</span>
-                <span className="fp-pill">{user.totalWorkouts} workouts</span>
+                <span className="fp-pill bg-[#FF6B47]/15 text-[#FF6B47] border-[#FF6B47]/20"><Star size={10} fill="#FF6B47" strokeWidth={0} />{profile.level}</span>
+                <span className="fp-pill">🔥 {profile.streak}-day streak</span>
+                <span className="fp-pill">{profile.totalWorkouts} workouts</span>
               </div>
             </div>
           </div>
@@ -74,17 +171,17 @@ export default function Profile() {
         {activeTab === 'overview' && (
           <div className="grid gap-4 lg:grid-cols-3 animate-fade-up">
             <article className="fp-panel p-5 rounded-[18px]"><h3 className="mb-3 flex items-center gap-2 text-base font-bold text-[#f0f0f5] font-display"><Shield size={15} strokeWidth={2.3} className="text-[#8B5CF6]" />Body Stats</h3>
-              <div className="space-y-2">{[{ label: 'Weight', value: `${user.stats.weight} ${user.stats.weightUnit}` }, { label: 'Height', value: `${user.stats.height} ${user.stats.heightUnit}` }, { label: 'Body Fat', value: `${user.stats.bodyFat}%` }, { label: 'VO2 Max', value: `${user.stats.vo2Max} ml/kg/min` }, { label: 'Resting HR', value: `${user.stats.rhr} bpm` }].map((row) => (
+              <div className="space-y-2">{bodyStatRows.map((row) => (
                 <div key={row.label} className="rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between p-3 text-sm"><span className="font-semibold text-[#555b6e]">{row.label}</span><span className="font-bold text-[#e8e8f0]">{row.value}</span></div>
               ))}</div>
             </article>
             <article className="fp-panel p-5 rounded-[18px]"><h3 className="mb-3 flex items-center gap-2 text-base font-bold text-[#f0f0f5] font-display"><Trophy size={15} strokeWidth={2.3} className="text-[#FBBF24]" />Lifetime Activity</h3>
-              <div className="space-y-2">{[{ label: 'Total Workouts', value: user.totalWorkouts }, { label: 'Current Streak', value: `${user.streak} days` }, { label: 'Longest Streak', value: '28 days' }, { label: 'Member Since', value: '2023-08-15' }].map((row) => (
+              <div className="space-y-2">{[{ label: 'Total Workouts', value: profile.totalWorkouts }, { label: 'Current Streak', value: `${profile.streak} days` }, { label: 'Longest Streak', value: '28 days' }, { label: 'Member Since', value: profile.joinedDate }].map((row) => (
                 <div key={row.label} className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3"><p className="text-[11px] font-semibold text-[#555b6e]">{row.label}</p><p className="mt-0.5 text-base font-bold text-[#e8e8f0] font-display">{row.value}</p></div>
               ))}</div>
             </article>
             <article className="fp-panel p-5 rounded-[18px]"><h3 className="mb-3 flex items-center gap-2 text-base font-bold text-[#f0f0f5] font-display"><Star size={15} strokeWidth={2.3} className="text-[#34D399]" />Daily Goals</h3>
-              <div className="space-y-2">{[{ label: 'Daily Calories', value: user.goals.dailyCalories.toLocaleString(), unit: 'kcal' }, { label: 'Daily Steps', value: user.goals.dailySteps.toLocaleString(), unit: 'steps' }, { label: 'Weekly Workouts', value: user.goals.weeklyWorkouts, unit: 'sessions' }, { label: 'Target Weight', value: user.goals.targetWeight, unit: 'lbs' }].map((row) => (
+              <div className="space-y-2">{dailyGoalRows.map((row) => (
                 <div key={row.label} className="rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between p-3 text-sm"><span className="font-semibold text-[#555b6e]">{row.label}</span><span className="font-bold text-[#e8e8f0]">{row.value}<span className="ml-0.5 text-[10px] text-[#555b6e]">{row.unit}</span></span></div>
               ))}</div>
             </article>
