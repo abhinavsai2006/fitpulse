@@ -1,19 +1,85 @@
-import { ArrowRight, Dumbbell, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
+import { ArrowRight, Dumbbell, Eye, EyeOff, Loader2, Lock, Mail, User } from 'lucide-react';
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 
 export default function Auth() {
-  const { login, navigate } = useApp();
+  const {
+    loginWithEmail,
+    registerWithEmail,
+    loginWithGoogle,
+    sendPasswordReset,
+    authBusy,
+    authError,
+    navigate,
+  } = useApp();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [localError, setLocalError] = useState('');
+  const [info, setInfo] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    login({ email: email || 'alex@fitpulse.io', name: name || 'Alex Rivera' });
+
+    setLocalError('');
+    setInfo('');
+
+    if (!email.trim()) {
+      setLocalError('Email is required.');
+      return;
+    }
+
+    if (!password) {
+      setLocalError('Password is required.');
+      return;
+    }
+
+    try {
+      if (isLogin) {
+        await loginWithEmail({ email: email.trim(), password });
+      } else {
+        await registerWithEmail({
+          name: name.trim() || email.split('@')[0],
+          email: email.trim(),
+          password,
+        });
+      }
+    } catch (error) {
+      setLocalError(error.message || 'Authentication failed.');
+    }
   };
+
+  const handleGoogle = async () => {
+    setLocalError('');
+    setInfo('');
+
+    try {
+      await loginWithGoogle();
+    } catch (error) {
+      setLocalError(error.message || 'Google sign-in failed.');
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    setLocalError('');
+    setInfo('');
+
+    if (!email.trim()) {
+      setLocalError('Enter your email first to reset your password.');
+      return;
+    }
+
+    try {
+      await sendPasswordReset(email.trim());
+      setInfo('Password reset email sent. Please check your inbox.');
+    } catch (error) {
+      setLocalError(error.message || 'Unable to send password reset email.');
+    }
+  };
+
+  const visibleError = localError || authError;
 
   return (
     <div className="fp-app-bg flex min-h-screen items-center justify-center p-4 relative overflow-hidden">
@@ -77,15 +143,18 @@ export default function Auth() {
 
           {isLogin && (
             <div className="text-right">
-              <button type="button" className="text-xs font-bold text-[#FF6B47] hover:text-[#FF8A5C] transition-colors">
+              <button type="button" onClick={handleForgotPassword} className="text-xs font-bold text-[#FF6B47] hover:text-[#FF8A5C] transition-colors">
                 Forgot password?
               </button>
             </div>
           )}
 
-          <button type="submit" className="fp-primary-btn w-full py-3.5">
-            {isLogin ? 'Sign In' : 'Create Account'}
-            <ArrowRight size={15} strokeWidth={2.4} />
+          {visibleError ? <p className="text-xs font-semibold text-[#FB7185]">{visibleError}</p> : null}
+          {info ? <p className="text-xs font-semibold text-[#34D399]">{info}</p> : null}
+
+          <button type="submit" disabled={authBusy} className="fp-primary-btn w-full py-3.5 disabled:cursor-not-allowed disabled:opacity-70">
+            {authBusy ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
+            {authBusy ? <Loader2 size={15} strokeWidth={2.4} className="animate-spin" /> : <ArrowRight size={15} strokeWidth={2.4} />}
           </button>
 
           <div className="flex items-center gap-3">
@@ -94,9 +163,9 @@ export default function Auth() {
             <div className="h-px flex-1 bg-white/[0.06]" />
           </div>
 
-          <button type="button" onClick={handleSubmit}
-            className="fp-secondary-btn w-full py-3">
-            Continue with Google
+          <button type="button" onClick={handleGoogle} disabled={authBusy}
+            className="fp-secondary-btn w-full py-3 disabled:cursor-not-allowed disabled:opacity-70">
+            {authBusy ? 'Connecting...' : 'Continue with Google'}
           </button>
         </form>
 

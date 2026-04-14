@@ -37,7 +37,11 @@ function ScreenLoader() {
 }
 
 function Router() {
-  const { currentPage, isAuthenticated, onboardingComplete } = useApp();
+  const { currentPage, isAuthenticated, onboardingComplete, authReady } = useApp();
+
+  if (!authReady) {
+    return <ScreenLoader />;
+  }
 
   if (!isAuthenticated) {
     if (currentPage === 'auth') return <Auth />;

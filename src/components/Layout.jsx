@@ -54,10 +54,10 @@ export default function Layout({ children }) {
   }, []);
 
   return (
-    <div className="fp-app-bg min-h-screen p-2 md:p-4">
+    <div className="fp-app-bg min-h-[100dvh] p-0 md:min-h-screen md:p-4">
       <div
-        className="fp-shell mx-auto flex w-full max-w-[1360px] gap-2 p-2 md:gap-3 md:p-3"
-        style={{ minHeight: 'calc(100vh - 16px)' }}
+        className="fp-shell mx-auto flex w-full gap-0 p-0 md:max-w-[1360px] md:gap-3 md:p-3"
+        style={{ minHeight: '100dvh' }}
       >
         {/* Desktop sidebar */}
         <Sidebar />
@@ -80,7 +80,7 @@ export default function Layout({ children }) {
         className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="mx-2 mb-2 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0c0c14]/95 shadow-[0_-4px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+        <div className="overflow-hidden border-t border-white/[0.08] bg-[#0c0c14]/95 shadow-[0_-4px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
           <nav
             className="flex items-stretch px-1 pt-1.5 pb-1"
             aria-label="Primary mobile navigation"

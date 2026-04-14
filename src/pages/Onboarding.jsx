@@ -61,9 +61,12 @@ export default function Onboarding() {
     return Boolean(profile.age && profile.weight);
   };
 
-  const next = () => {
+  const next = async () => {
     if (!canContinue()) return;
-    if (currentStep >= totalSteps - 1) { completeOnboarding(); return; }
+    if (currentStep >= totalSteps - 1) {
+      await completeOnboarding({ selections, profile });
+      return;
+    }
     setCurrentStep((prev) => prev + 1);
   };
 

@@ -152,6 +152,22 @@
     box-shadow: var(--fp-shadow-sm);
   }
 
+  @media (max-width: 767px) {
+    .fp-shell {
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      background: transparent;
+    }
+
+    .fp-surface {
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      min-height: 100dvh;
+    }
+  }
+
   /* ── Panel (inset element) ───────────────────────────────── */
   .fp-panel {
     background: var(--fp-bg-card);
