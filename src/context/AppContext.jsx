@@ -4,7 +4,7 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
   signOut,
 } from 'firebase/auth';
 import { user as defaultUser } from '../data/mockData';
@@ -206,10 +206,7 @@ export function AppProvider({ children }) {
     setAuthBusy(true);
 
     try {
-      const credential = await signInWithPopup(auth, googleProvider);
-      await ensureUserProfile(credential.user, {
-        onboardingComplete: false,
-      });
+      await signInWithRedirect(auth, googleProvider);
     } catch (error) {
       const message = parseAuthError(error);
       dispatch({ type: 'SET_AUTH_ERROR', error: message });
