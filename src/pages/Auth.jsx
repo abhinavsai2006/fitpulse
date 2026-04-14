@@ -40,11 +40,18 @@ export default function Auth() {
       if (isLogin) {
         await loginWithEmail({ email: email.trim(), password });
       } else {
-        await registerWithEmail({
+        const result = await registerWithEmail({
           name: name.trim() || email.split('@')[0],
           email: email.trim(),
           password,
         });
+
+        if (result?.verificationSent) {
+          setInfo(result.message || 'Verification link sent. Please verify your email and sign in.');
+          setIsLogin(true);
+          setPassword('');
+          return;
+        }
       }
     } catch (error) {
       setLocalError(error.message || 'Authentication failed.');
@@ -73,7 +80,7 @@ export default function Auth() {
 
     try {
       await sendPasswordReset(email.trim());
-      setInfo('Password reset email sent. Please check your inbox.');
+      setInfo('Password reset email sent. Check your inbox and spam folder.');
     } catch (error) {
       setLocalError(error.message || 'Unable to send password reset email.');
     }

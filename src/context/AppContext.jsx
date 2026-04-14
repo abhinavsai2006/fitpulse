@@ -2,7 +2,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useReducer,
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  sendEmailVerification,
   sendPasswordResetEmail,
+  signInWithPopup,
   signInWithEmailAndPassword,
   signInWithRedirect,
   signOut,
@@ -60,6 +62,14 @@ function parseAuthError(error) {
       return 'Firebase API key is invalid or restricted for this domain.';
     case 'auth/network-request-failed':
       return 'Network error while contacting Firebase. Check connection and try again.';
+    case 'auth/popup-blocked':
+      return 'Popup was blocked by the browser. Allow popups and try again.';
+    case 'auth/cancelled-popup-request':
+      return 'Google sign-in request was cancelled. Please try again.';
+    case 'auth/account-exists-with-different-credential':
+      return 'An account already exists with this email using another sign-in method.';
+    case 'auth/email-not-verified':
+      return 'Please verify your email first. A verification link has been sent to your inbox.';
     case 'auth/profile-timeout':
       return 'Sign-in succeeded, but profile sync timed out. Please continue and try again later.';
     case 'permission-denied':
@@ -207,7 +217,17 @@ export function AppProvider({ children }) {
     setAuthBusy(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+
+      if (!credential.user.emailVerified) {
+        await sendEmailVerification(credential.user, {
+          url: window.location.origin,
+          handleCodeInApp: false,
+        });
+
+        await signOut(auth);
+        throw { code: 'auth/email-not-verified' };
+      }
     } catch (error) {
       const message = parseAuthError(error);
       dispatch({ type: 'SET_AUTH_ERROR', error: message });
@@ -224,15 +244,27 @@ export function AppProvider({ children }) {
     try {
       const credential = await createUserWithEmailAndPassword(auth, email, password);
 
+      await sendEmailVerification(credential.user, {
+        url: window.location.origin,
+        handleCodeInApp: false,
+      });
+
       try {
         await ensureUserProfile(credential.user, {
           name: name || credential.user.displayName || 'FitPulse User',
           email,
+          emailVerified: false,
           onboardingComplete: false,
         });
       } catch (profileError) {
         dispatch({ type: 'SET_AUTH_ERROR', error: parseAuthError(profileError) });
       }
+
+      await signOut(auth);
+      return {
+        verificationSent: true,
+        message: 'Verification link sent. Please verify your email, then sign in.',
+      };
     } catch (error) {
       const message = parseAuthError(error);
       dispatch({ type: 'SET_AUTH_ERROR', error: message });
@@ -247,8 +279,26 @@ export function AppProvider({ children }) {
     setAuthBusy(true);
 
     try {
-      await signInWithRedirect(auth, googleProvider);
+      const credential = await signInWithPopup(auth, googleProvider);
+
+      try {
+        await ensureUserProfile(credential.user, {
+          name: credential.user.displayName || undefined,
+          email: credential.user.email || undefined,
+          emailVerified: true,
+        });
+      } catch (profileError) {
+        dispatch({ type: 'SET_AUTH_ERROR', error: parseAuthError(profileError) });
+      }
     } catch (error) {
+      if (
+        error?.code === 'auth/popup-blocked' ||
+        error?.code === 'auth/cancelled-popup-request'
+      ) {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+
       const message = parseAuthError(error);
       dispatch({ type: 'SET_AUTH_ERROR', error: message });
       throw new Error(message);
