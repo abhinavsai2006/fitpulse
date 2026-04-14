@@ -12,6 +12,7 @@ import { user as defaultUser } from '../data/mockData';
 import { auth, createUserViewModel, ensureUserProfile, googleProvider, updateUserProfile } from '../firebase';
 
 const AppContext = createContext(null);
+const GOOGLE_REDIRECT_FLAG = 'fitpulse.googleRedirectPending';
 
 /* ── Initial state ──────────────────────────────────────────── */
 const initialState = {
@@ -50,6 +51,10 @@ function parseAuthError(error) {
       return 'Firebase API key is invalid or restricted for this domain.';
     case 'auth/network-request-failed':
       return 'Network error while contacting Firebase. Check connection and try again.';
+    case 'permission-denied':
+      return 'Authentication succeeded, but Firestore access is denied. Update database rules.';
+    case 'unavailable':
+      return 'Authentication succeeded, but Firebase database is temporarily unavailable.';
     case 'auth/popup-closed-by-user':
       return 'Google sign-in popup was closed before completion.';
     case 'auth/too-many-requests':
@@ -145,19 +150,31 @@ export function AppProvider({ children }) {
   const [authBusy, setAuthBusy] = useState(false);
 
   useEffect(() => {
-    // Capture redirect auth outcomes and surface Firebase errors in-app.
-    getRedirectResult(auth)
-      .catch((error) => {
-        dispatch({ type: 'SET_AUTH_ERROR', error: parseAuthError(error) });
-      })
-      .finally(() => {
-        setAuthBusy(false);
-      });
+    // Resolve redirect result only when this app initiated Google redirect sign-in.
+    if (typeof window !== 'undefined' && window.sessionStorage.getItem(GOOGLE_REDIRECT_FLAG) === '1') {
+      window.sessionStorage.removeItem(GOOGLE_REDIRECT_FLAG);
+
+      getRedirectResult(auth)
+        .catch((error) => {
+          dispatch({ type: 'SET_AUTH_ERROR', error: parseAuthError(error) });
+        })
+        .finally(() => {
+          setAuthBusy(false);
+        });
+    }
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
-          const profile = await ensureUserProfile(firebaseUser);
+          let profile = null;
+
+          try {
+            profile = await ensureUserProfile(firebaseUser);
+          } catch (profileError) {
+            // Keep user logged in even if profile sync fails (e.g., Firestore rules).
+            dispatch({ type: 'SET_AUTH_ERROR', error: parseAuthError(profileError) });
+          }
+
           const userData = createUserViewModel(defaultUser, firebaseUser, profile);
 
           dispatch({
@@ -205,11 +222,16 @@ export function AppProvider({ children }) {
 
     try {
       const credential = await createUserWithEmailAndPassword(auth, email, password);
-      await ensureUserProfile(credential.user, {
-        name: name || credential.user.displayName || 'FitPulse User',
-        email,
-        onboardingComplete: false,
-      });
+
+      try {
+        await ensureUserProfile(credential.user, {
+          name: name || credential.user.displayName || 'FitPulse User',
+          email,
+          onboardingComplete: false,
+        });
+      } catch (profileError) {
+        dispatch({ type: 'SET_AUTH_ERROR', error: parseAuthError(profileError) });
+      }
     } catch (error) {
       const message = parseAuthError(error);
       dispatch({ type: 'SET_AUTH_ERROR', error: message });
@@ -224,9 +246,18 @@ export function AppProvider({ children }) {
     setAuthBusy(true);
 
     try {
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem(GOOGLE_REDIRECT_FLAG, '1');
+      }
+
       await signInWithRedirect(auth, googleProvider);
     } catch (error) {
       const message = parseAuthError(error);
+
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem(GOOGLE_REDIRECT_FLAG);
+      }
+
       dispatch({ type: 'SET_AUTH_ERROR', error: message });
       throw new Error(message);
     } finally {
